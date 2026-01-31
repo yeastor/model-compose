@@ -37,11 +37,6 @@ services:
     ports:
       - "80:80"
       - "443:443"
-    volumes:
-      - ./conf.d:/etc/nginx/conf.d:ro
-      - ./ssl:/etc/nginx/ssl:ro
-      - nginx-logs:/var/log/nginx
-      - /etc/letsencrypt:/etc/letsencrypt:ro
     environment:
       - NGINX_ENV=production
       - TZ=Europe/Moscow
