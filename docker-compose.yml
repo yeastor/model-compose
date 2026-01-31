@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  model-gate:
+    build:
+      context: /var/www/model-gate
+      dockerfile: /var/www/model-gate/build/Dockerfile
+    container_name: model-gate
+    restart: unless-stopped
+    ports:
+      - "${APP_PORTS_GRPC}:8093"
+      - "${APP_PORTS_HTTP}:8094"
+    environment:
+      # APP settings
+      APP_ENV: ${APP_ENV}
+      APP_PORTS_GRPC: ${APP_PORTS_GRPC}
+      APP_PORTS_HTTP: ${APP_PORTS_HTTP}
+      APP_LOG_LEVEL: ${APP_LOG_LEVEL}
+      APP_PROCESSOR_MODEL_URL: ${APP_PROCESSOR_MODEL_URL}
+      APP_PROCESSOR_MODEL_NAME: ${APP_PROCESSOR_MODEL_NAME}
+      GIN_MODE: ${GIN_MODE:-release}
+      GOGC: ${GOGC:-100}
+      GOMAXPROCS: ${GOMAXPROCS:-0}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${APP_PORTS_HTTP}/healthz/l"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  api-gateway:
+    build:
+      context: /var/www/model-nginx
+      dockerfile: /var/www/model-nginx/nginx/Dockerfile
+    container_name: nginx-api-gateway
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./conf.d:/etc/nginx/conf.d:ro
+      - ./ssl:/etc/nginx/ssl:ro
+      - nginx-logs:/var/log/nginx
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    environment:
+      - NGINX_ENV=production
+      - TZ=Europe/Moscow
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
