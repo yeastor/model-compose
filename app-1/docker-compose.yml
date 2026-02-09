@@ -46,3 +46,25 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+
+  model-front-chat:
+    build:
+      context: /var/www/model-front-chat
+      dockerfile: /var/www/model-front-chat/docker/Dockerfile
+    container_name: model-front-chat
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - NGINX_ENV=production
+      - TZ=Europe/Moscow
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:25.12-alpine
+    container_name: clickhouse
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - NGINX_ENV=production
+      - TZ=Europe/Moscow
